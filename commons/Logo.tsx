@@ -7,8 +7,8 @@ const Logo: React.FC = () => {
       <Image
         alt="easyGPT-logo"
         src="/logo.png"
-        height={70}
-        width={70}
+        height={50}
+        width={50}
         className="h-16 w-16 rounded-full"
       />
     </>
