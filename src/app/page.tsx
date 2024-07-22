@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import Logo from "../../commons/Logo";
+import CoverVideo from "@/components/CoverVideo";
 
 export default function Page() {
   const navItems = [
@@ -62,6 +63,9 @@ export default function Page() {
       <div className="flex flex-row mx-20 items-center py-1 justify-between">
         <Logo />
         <Navbar navItems={navItems} />
+      </div>{" "}
+      <div className="flex flex-col items-center">
+        <CoverVideo />
       </div>
     </>
   );
