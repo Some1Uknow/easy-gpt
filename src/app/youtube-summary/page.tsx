@@ -1,33 +1,37 @@
-import { Upload, FileText, Clipboard } from "lucide-react";
+import { Video, Clipboard, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function PDFSummary() {
+export default function YouTubeVideoSummary() {
   return (
-    <div className="min-h-screen bg-black p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-6xl mx-auto shadow-md rounded-lg p-6">
         {/* Heading and Subheading */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <FileText className="w-6 h-6" />
-            PDF Summary
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Video className="w-6 h-6" />
+            YouTube Video Summary
           </h1>
           <p className="text-gray-100 mt-2">
-            Quickly Summarize Your PDF Documents
+            Summarize YouTube Videos with Ease
           </p>
         </div>
 
-        {/* PDF Upload Section */}
+        {/* YouTube Video URL Input Section */}
         <div className="mb-6">
           <label className="block text-gray-100 font-medium mb-2">
-            Upload Your PDF File
+            Enter YouTube Video URL
           </label>
           <div className="flex items-center gap-4">
-            <Input type="file" accept="application/pdf" className="w-full" />
+            <Input
+              type="text"
+              placeholder="https://www.youtube.com/watch?v=example"
+              className="w-full"
+            />
             <Button variant="outline" className="flex items-center gap-2">
               <Upload className="w-4 h-4" />
-              Upload
+              Fetch
             </Button>
           </div>
         </div>
@@ -39,8 +43,8 @@ export default function PDFSummary() {
           </label>
           <Textarea
             readOnly
-            placeholder="The PDF summary will appear here..."
-            className="w-full bg-gray-800"
+            placeholder="The video summary will appear here..."
+            className="w-full bg-gray-100"
             rows={6}
           />
         </div>

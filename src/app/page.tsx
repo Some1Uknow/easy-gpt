@@ -1,6 +1,9 @@
 import Navbar from "@/components/Navbar";
 import Logo from "../../commons/Logo";
-import CoverVideo from "@/components/CoverVideo";
+import { ArrowRight } from "lucide-react";
+import ReasonsToChoose from "@/components/Reasons";
+import TargetAudience from "@/components/TargetAudience";
+import Footer from "@/components/Footer";
 
 export default function Page() {
   const navItems = [
@@ -44,7 +47,7 @@ export default function Page() {
         },
         {
           title: "Text to Social Media Post",
-          href: "/text-to-social-post",
+          href: "/text-to-social-media-post",
           description: "Create engaging social media content from text input.",
         },
         {
@@ -58,15 +61,41 @@ export default function Page() {
       title: "Pricing",
     },
   ];
+
   return (
     <>
-      <div className="flex flex-row mx-20 items-center py-1 justify-between">
-        <Logo />
-        <Navbar navItems={navItems} />
-      </div>{" "}
-      <div className="flex flex-col items-center">
-        <CoverVideo />
-      </div>
+      <main className="min-h-screen bg-black">
+        {/* Navbar Section */}
+        <div className="flex flex-row mx-20 items-center p-5 justify-between">
+          <Logo />
+          <Navbar navItems={navItems} />
+        </div>
+
+        {/* Main Gradient Section */}
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="w-11/12 h-full bg-gradient-to-r from-black to-[#2f2d32] p-16 rounded-lg flex flex-col items-center justify-center shadow-lg">
+            {/* Main Heading */}
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Your All in One AI Platform
+            </h1>
+
+            {/* Subheading */}
+            <p className="text-lg md:text-xl text-gray-400 mb-8">
+              Turn your words into captivating images, posts, and stories—
+              <span className="text-purple-400"> effortlessly.</span>
+            </p>
+
+            {/* Call-to-Action Button */}
+            <button className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2 mx-auto">
+              <span>Start free today</span>
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </main>
+      <ReasonsToChoose />
+      <TargetAudience />
+      <Footer />
     </>
   );
 }

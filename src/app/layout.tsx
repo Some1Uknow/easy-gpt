@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
-
-const inter = Inter({ subsets: ["latin"] });
+import { poppins } from "../../commons/Fonts";
 
 export const metadata: Metadata = {
   title: "EasyGPT",
@@ -21,8 +19,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={cn(
-          "bg-black text-white font-sans antialiased",
-          inter.className
+          "bg-black text-white font-sans antialiased min-h-screen",
+          poppins.className
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
