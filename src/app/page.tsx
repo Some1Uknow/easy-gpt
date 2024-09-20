@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import ReasonsToChoose from "@/components/Reasons";
 import TargetAudience from "@/components/TargetAudience";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 
 export default function Page() {
   const navItems = [
@@ -86,10 +87,12 @@ export default function Page() {
             </p>
 
             {/* Call-to-Action Button */}
-            <button className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2 mx-auto">
-              <span>Start free today</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <Link href="/signup">
+              <button className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2 mx-auto">
+                <span>Start free today</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </Link>
           </div>
         </div>
       </main>
