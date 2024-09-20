@@ -57,7 +57,7 @@ export default function ReasonsToChoose() {
           <div className="mt-6 flex-grow">
             <h2 className="text-2xl font-bold">Seamless Integration</h2>
             <p className="text-gray-400 mt-4">
-              Integrate our platform into your workflow with ease. Whether it's for personal use or team collaboration, our tools work seamlessly across devices.
+              Integrate our platform into your workflow with ease. Whether it&apos;s for personal use or team collaboration, our tools work seamlessly across devices.
             </p>
           </div>
         </div>
