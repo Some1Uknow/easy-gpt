@@ -9,6 +9,7 @@ export interface Env {
 
 export async function GET(req: Request, env: Env) {
   const response = await getRequestContext().env.AI.run(
+     // @ts-ignore
     "@cf/meta/llama-3.1-8b-instruct",
     {
       prompt: "What is the origin of the phrase Hello, World",

@@ -31,6 +31,7 @@ export async function GET(req: Request, env: Env) {
     },
   ];
   const finalResponse = await getRequestContext().env.AI.run(
+    // @ts-ignore
     "@cf/meta/llama-3.1-8b-instruct",
     { messages }
   );
