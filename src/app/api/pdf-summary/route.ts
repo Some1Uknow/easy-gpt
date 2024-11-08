@@ -7,14 +7,31 @@ export interface Env {
   AI: Ai;
 }
 
-export async function GET(req: Request, env: Env) {
-  const response = await getRequestContext().env.AI.run(
-     // @ts-ignore
-    "@cf/meta/llama-3.1-8b-instruct",
-    {
-      prompt: "What is the origin of the phrase Hello, World",
-    }
-  );
+export async function POST(req: Request, env: Env) {
+  try {
+    // @ts-ignore
+    const { text } = await req.json(); // Receive extracted text from the frontend
 
-  return new Response(JSON.stringify(response));
+    if (!text) {
+      return NextResponse.json({ error: "No text provided for summarization." }, { status: 400 });
+    }
+
+    const response = await getRequestContext().env.AI.run(
+      // @ts-ignore
+      "@cf/meta/llama-3.1-8b-instruct",
+      {
+        prompt: `Summarize the following text: ${text}`,
+      }
+    );
+
+    // Extract the summary from the response (assuming it's within 'choices' or similar structure)
+  
+    console.log(response);
+    // @ts-ignore
+    const summary = response.response ? response.response : "Summary not available.";
+    return NextResponse.json({ summary });
+  } catch (error) {
+    console.error("Error in summarizing text:", error);
+    return NextResponse.json({ error: "Failed to generate summary." }, { status: 500 });
+  }
 }
