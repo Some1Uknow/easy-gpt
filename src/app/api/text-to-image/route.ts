@@ -7,7 +7,7 @@ export interface Env {
   AI: Ai;
 }
 
-export async function GET(req: Request, env: Env) {
+export async function GET(req: Request) {
   const url = new URL(req.url);
   const prompt = url.searchParams.get("prompt");
 

@@ -6,7 +6,7 @@ export interface Env {
   AI: Ai;
 }
 
-export async function GET(req: Request, env: Env) {
+export async function GET(req: Request) {
   const response = await getRequestContext().env.AI.run(
      // @ts-ignore
     "@cf/meta/llama-3.1-8b-instruct",

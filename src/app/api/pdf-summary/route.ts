@@ -7,7 +7,7 @@ export interface Env {
   AI: Ai;
 }
 
-export async function POST(req: Request, env: Env) {
+export async function POST(req: Request) {
   try {
     // @ts-ignore
     const { text } = await req.json(); // Receive extracted text from the frontend
