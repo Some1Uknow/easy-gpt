@@ -1,7 +1,7 @@
 "use client";
 import Navbar from "@/components/Navbar";
 import Logo from "../../commons/Logo";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, Video, Music, Mic, AudioLines, Image, Send, Diameter } from "lucide-react";
 import ReasonsToChoose from "@/components/Reasons";
 import TargetAudience from "@/components/TargetAudience";
 import Footer from "@/components/Footer";
@@ -11,52 +11,55 @@ export default function Page() {
   const router = useRouter();
   const navItems = [
     {
-      title: "AI Products",
+      title: "Tools",
       sublinks: [
         {
           title: "PDF Summary",
           href: "/pdf-summary",
           description: "Summarize PDF documents using AI technology.",
+          icon: <FileText className="w-4 h-4 text-purple-400" />
         },
         {
           title: "YouTube Video Summary",
           href: "/youtube-summary",
           description: "Get concise summaries of YouTube videos.",
+          icon: <Video className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Audio Summary",
           href: "/audio-summary",
           description: "Summarize audio content quickly and efficiently.",
+          icon: <Music className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Podcast Summary",
           href: "/podcast-summary",
           description: "Extract key points from your favorite podcasts.",
+          icon: <Mic className="w-4 h-4 text-purple-400" />
         },
-      ],
-    },
-    {
-      title: "AI Generator",
-      sublinks: [
         {
           title: "Text to Image",
           href: "/text-to-image",
           description: "Generate images from textual descriptions.",
+          icon: <Image className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Text to Audio",
           href: "/text-to-audio",
           description: "Convert text into natural-sounding audio.",
+          icon: <AudioLines className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Text to Social Media Post",
           href: "/text-to-social-media-post",
           description: "Create engaging social media content from text input.",
+          icon: <Send className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Text to Diagram",
           href: "/text-to-diagram",
           description: "Transform text descriptions into visual diagrams.",
+          icon: <Diameter className="w-4 h-4 text-purple-400" />
         },
       ],
     },
@@ -89,7 +92,6 @@ export default function Page() {
             </p>
 
             {/* Call-to-Action Button */}
-
             <button
               onClick={() => router.push("/signup")}
               className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2 mx-auto"

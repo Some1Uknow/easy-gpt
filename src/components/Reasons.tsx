@@ -1,6 +1,8 @@
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ReasonsToChoose() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center py-10 px-4">
       {/* Heading */}
@@ -21,7 +23,9 @@ export default function ReasonsToChoose() {
           <div className="mt-6 flex-grow">
             <h2 className="text-2xl font-bold">Effortless Content Creation</h2>
             <p className="text-gray-400 mt-4">
-              EasyGPT makes content creation a breeze. From generating blog posts to crafting social media updates, let AI handle your content creation tasks efficiently.
+              EasyGPT makes content creation a breeze. From generating blog
+              posts to crafting social media updates, let AI handle your content
+              creation tasks efficiently.
             </p>
           </div>
         </div>
@@ -39,7 +43,9 @@ export default function ReasonsToChoose() {
           <div className="mt-6 flex-grow">
             <h2 className="text-2xl font-bold">Versatile AI Tools</h2>
             <p className="text-gray-400 mt-4">
-              EasyGPT offers a wide range of tools to convert text into audio, images, diagrams, and even detailed summaries for PDFs and YouTube videos.
+              EasyGPT offers a wide range of tools to convert text into audio,
+              images, diagrams, and even detailed summaries for PDFs and YouTube
+              videos.
             </p>
           </div>
         </div>
@@ -57,7 +63,9 @@ export default function ReasonsToChoose() {
           <div className="mt-6 flex-grow">
             <h2 className="text-2xl font-bold">Seamless Integration</h2>
             <p className="text-gray-400 mt-4">
-              Integrate our platform into your workflow with ease. Whether it&apos;s for personal use or team collaboration, our tools work seamlessly across devices.
+              Integrate our platform into your workflow with ease. Whether
+              it&apos;s for personal use or team collaboration, our tools work
+              seamlessly across devices.
             </p>
           </div>
         </div>
@@ -65,7 +73,10 @@ export default function ReasonsToChoose() {
 
       {/* Sign up Button */}
       <div className="mt-12">
-        <button className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2">
+        <button
+          onClick={() => router.push("/signup")}
+          className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2"
+        >
           <span>Sign up</span>
           <ArrowRight className="w-5 h-5" />
         </button>

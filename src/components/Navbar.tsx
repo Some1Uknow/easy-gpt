@@ -16,7 +16,9 @@ import {
 
 interface NavItem {
   title: string;
-  sublinks?: { title: string; href: string; description: string }[];
+  sublinks?: {
+    icon: React.ReactNode; title: string; href: string; description: string 
+}[];
 }
 
 interface NavbarProps {
@@ -26,7 +28,7 @@ interface NavbarProps {
 export default function Navbar({ navItems }: NavbarProps) {
   return (
     <NavigationMenu>
-      <NavigationMenuList>
+      <NavigationMenuList className="ml-40">
         {navItems.map((item, index) => (
           <NavigationMenuItem key={index}>
             {item.sublinks ? (
@@ -40,6 +42,7 @@ export default function Navbar({ navItems }: NavbarProps) {
                         key={subIndex}
                         title={sublink.title}
                         href={sublink.href}
+                        icon={sublink.icon} // Pass the icon prop
                       >
                         {sublink.description}
                       </ListItem>
@@ -65,25 +68,30 @@ export default function Navbar({ navItems }: NavbarProps) {
   );
 }
 
+
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a">
->(({ className, title, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"a"> & { icon?: React.ReactNode }
+>(({ className, title, children, icon, ...props }, ref) => {
   return (
     <li>
       <NavigationMenuLink asChild>
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            "flex items-center space-x-2 select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             className
           )}
           {...props}
         >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
+          {/* Render the icon if provided */}
+          {icon && <span className="w-5 h-5 text-muted-foreground">{icon}</span>}
+          <div>
+            <div className="text-md font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {children}
+            </p>
+          </div>
         </a>
       </NavigationMenuLink>
     </li>
