@@ -6,14 +6,29 @@ export interface Env {
   AI: Ai;
 }
 
-export async function GET(req: Request) {
+// Define request payload type
+interface TranscriptRequest {
+  transcript: string;
+}
+
+export async function POST(req: Request) {
+  // Parse the transcript text from the request body
+  const { transcript }: TranscriptRequest = await req.json();
+  console.log(transcript)
+  // Check if transcript is provided
+  if (!transcript) {
+    return new Response("Transcript is required", { status: 400 });
+  }
+
+  // Call the AI model to generate a summary from the transcript text
   const response = await getRequestContext().env.AI.run(
-    //@ts-ignore
+    // @ts-ignore
     "@cf/meta/llama-3.1-8b-instruct",
     {
-      prompt: "What is the origin of the phrase Hello, World",
+      prompt: `You are given a YouTube video transcript, explain it in simple language: ${transcript}`,
     }
   );
 
+  // Return the AI response as JSON
   return new Response(JSON.stringify(response));
 }
