@@ -5,12 +5,11 @@ import { VideoData } from "../../../commons/types";
 import { Video, Clipboard, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import MarkdownStreamer from "@/components/MarkdownStreamer";
 
 export default function YouTubeVideoSummary() {
   const [videoUrl, setVideoUrl] = useState("");
   const [summary, setSummary] = useState("");
-  //const [videoDetails, setVideoDetails] = useState(null);
   const [videoDetails, setVideoDetails] = useState<VideoData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,15 +50,11 @@ export default function YouTubeVideoSummary() {
       const videoData = await response.json();
       // @ts-ignore
       setVideoDetails(videoData);
-
-      // Combine transcript text
       // @ts-ignore
-
       const transcriptText = videoData.transcript
         .map((item: { text: any }) => item.text)
         .join(" ");
-      console.log("transcript -  ", transcriptText);
-      // Send transcript text to backend for summarization
+
       const summaryResponse = await fetch("/api/youtubeSummary", {
         method: "POST",
         headers: {
@@ -72,7 +67,7 @@ export default function YouTubeVideoSummary() {
 
       const summaryData = await summaryResponse.json();
       // @ts-ignore
-      setSummary(summaryData.summary);
+      setSummary(summaryData.response);
     } catch (error) {
       console.error("Error fetching summary:", error);
       setSummary("Failed to fetch summary. Please try again.");
@@ -89,20 +84,18 @@ export default function YouTubeVideoSummary() {
   };
 
   return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto shadow-md rounded-lg p-6">
-        {/* Heading and Subheading */}
+    <div className="min-h-screen p-8 bg-black">
+      <div className="max-w-7xl mx-auto p-6 rounded-lg shadow-lg">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Video className="w-6 h-6" />
             YouTube Video Summary
           </h1>
-          <p className="text-gray-100 mt-2">
-            Summarize YouTube Videos with Ease
+          <p className="text-gray-400 mt-2">
+            Summarize YouTube videos with ease
           </p>
         </div>
 
-        {/* YouTube Video URL Input Section */}
         <div className="mb-6">
           <label className="block text-gray-100 font-medium mb-2">
             Enter YouTube Video URL
@@ -127,42 +120,36 @@ export default function YouTubeVideoSummary() {
           </div>
         </div>
 
-        {/* Display Video Details */}
         {videoDetails && (
-          <div className="mb-6">
+          <div className="flex flex-col md:flex-row gap-6 mb-6 text-white">
             <img
               src={videoDetails.thumbnail}
               alt="Thumbnail"
-              className="w-full rounded-md mb-4"
+              className="w-full md:w-64 rounded-md mb-4 md:mb-0"
             />
-            <h2 className="text-xl font-semibold">{videoDetails.title}</h2>
-            <p className="text-gray-400">Channel: {videoDetails.channel}</p>
-            <p className="text-gray-400">
-              Duration: {videoDetails.duration} seconds
-            </p>
-            <p className="text-gray-500 mt-4">{videoDetails.description}</p>
+            <div>
+              <h2 className="text-xl font-semibold">{videoDetails.title}</h2>
+              <p className="text-gray-400">Channel: {videoDetails.channel}</p>
+              <p className="text-gray-400">
+          {/* @ts-ignore */}
+                Duration: {Math.floor(videoDetails.duration / 60)}: {videoDetails.duration % 60} min
+              </p>
+              <p className="text-gray-400 mt-4">{videoDetails.description}</p>
+            </div>
           </div>
         )}
 
-        {/* Output Section */}
         <div className="mb-6">
           <label className="block text-gray-100 font-medium mb-2">
             Summary
           </label>
-          <Textarea
-            readOnly
-            value={summary}
-            placeholder="The video summary will appear here..."
-            className="w-full bg-gray-100"
-            rows={6}
-          />
+          <MarkdownStreamer text={summary} mode="markdown" />
         </div>
 
-        {/* Action Buttons */}
         <div className="flex gap-4">
           <Button
             variant="ghost"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 text-white"
             onClick={handleCopy}
             disabled={!summary}
           >

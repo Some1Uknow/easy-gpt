@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     // @ts-ignore
     "@cf/meta/llama-3.1-8b-instruct",
     {
-      prompt: `You are given a YouTube video transcript, explain it in simple language: ${transcript}`,
+      prompt: `You are given a YouTube video's entire transcript, explain about the video in simple language and don't mention it like you are explaining the transcript instead explain it like you are explaining the actual video: ${transcript}`,
     }
   );
 
