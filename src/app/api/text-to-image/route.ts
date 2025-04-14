@@ -1,34 +1,23 @@
+import { NextRequest, NextResponse } from "next/server";
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-export interface Env {
-  AI: Ai;
-}
-
-export async function GET(req: Request) {
-  const url = new URL(req.url);
-  const prompt = url.searchParams.get("prompt");
-
-  if (!prompt) {
-    return new Response("Prompt is required", { status: 400 });
+export async function POST(req: NextRequest) {
+  const { prompt } = (await req.json()) as { prompt: string };
+  console.log("Received prompt:", prompt);
+  try {
+    const response = await getRequestContext().env.AI.run(
+      "@cf/black-forest-labs/flux-1-schnell",
+      {
+        prompt: prompt,
+      }
+    );
+    // response.image is base64 encoded which can be used directly as an <img src=""> data URI
+    const dataURI = `data:image/jpeg;charset=utf-8;base64,${response.image}`;
+ //   console.log("Generated image data URI:", dataURI);
+    return Response.json({ dataURI });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  const inputs = {
-    prompt: prompt,
-    height: 1024,
-    width: 1024,
-  };
-
-  const response = await getRequestContext().env.AI.run(
-    "@cf/bytedance/stable-diffusion-xl-lightning",
-    inputs
-  );
-
-  return new Response(response, {
-    headers: {
-      "content-type": "image/png",
-    },
-  });
 }

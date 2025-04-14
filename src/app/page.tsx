@@ -26,16 +26,10 @@ export default function Page() {
           icon: <Video className="w-4 h-4 text-purple-400" />
         },
         {
-          title: "Podcast Summary",
-          href: "/podcast-summary",
-          description: "Extract key points from your favorite podcasts.",
-          icon: <Mic className="w-4 h-4 text-purple-400" />
-        },
-        {
-          title: "Resume Analyzer",
-          href: "/resumeAnalyzer",
-          description: "Analyze and enhance your resume for job applications.",
-          icon: <Send className="w-4 h-4 text-purple-400" />
+          title: "Text to Video",
+          href: "/text-to-video",
+          description: "Generate videos from text descriptions.",
+          icon: <Video className="w-4 h-4 text-purple-400" />
         },
         {
           title: "Text to Audio",
@@ -60,12 +54,6 @@ export default function Page() {
           href: "/image-to-text",
           description: "Extract text from images with OCR technology.",
           icon: <FileText className="w-4 h-4 text-purple-400" />
-        },
-        {
-          title: "Job Cover Letter",
-          href: "/job-cover-letter",
-          description: "Generate a professional cover letter based on your resume.",
-          icon: <Send className="w-4 h-4 text-purple-400" />
         },
       ],
     },

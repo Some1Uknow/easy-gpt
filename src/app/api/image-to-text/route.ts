@@ -6,15 +6,36 @@ export const runtime = "edge";
 export interface Env {
   AI: Ai;
 }
+export async function POST(request: Request): Promise<Response> {
+  try {
+    const formData = await request.formData();
+    const image = formData.get("image") as File;
 
-export async function GET(req: Request) {
-  const response = await getRequestContext().env.AI.run(
-     // @ts-ignore
-    "@cf/meta/llama-3.1-8b-instruct",
-    {
-      prompt: "What is the origin of the phrase Hello, World",
+    if (!image) {
+      return new Response(JSON.stringify({ error: "Image is required" }), {
+        status: 400,
+      });
     }
-  );
 
-  return new Response(JSON.stringify(response));
+    // Convert the image to a Buffer
+    const imageBuffer = await image.arrayBuffer();
+
+    // Call Cloudflare's AI model for generating a caption
+    const input = {
+      image: [...new Uint8Array(imageBuffer)],
+      prompt: "Generate a caption for this image",
+      max_tokens: 512,
+    };
+    const response = await getRequestContext().env.AI.run(
+      "@cf/unum/uform-gen2-qwen-500m",
+      input
+    );
+    console.log(response);
+    return new Response(JSON.stringify(response), { status: 200 });
+  } catch (error) {
+    console.error("Error processing image:", error);
+    return new Response(JSON.stringify({ error: "Failed to process image" }), {
+      status: 500,
+    });
+  }
 }
