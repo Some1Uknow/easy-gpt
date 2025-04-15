@@ -46,7 +46,7 @@ export default function TextToDiagram() {
         throw new Error("Failed to generate diagram");
       }
 
-      const data = await response.json();
+      const data: { result: string } = await response.json();
       setDiagramCode(data.result);
       setError(null);
     } catch (err: Error | any) {

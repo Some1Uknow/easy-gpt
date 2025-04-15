@@ -1,5 +1,5 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
@@ -7,9 +7,10 @@ export interface Env {
   AI: Ai;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { prompt } = (await req.json()) as { prompt: string }; // Receive extracted text from the frontend
   console.log("Received prompt:", prompt);
+
   const messages = [
     {
       role: "system",
@@ -21,22 +22,28 @@ export async function POST(req: Request) {
       content: `${prompt}`,
     },
   ];
+
   const response = await getRequestContext().env.AI.run(
     "@hf/mistral/mistral-7b-instruct-v0.2",
     { messages }
   );
-
-  console.log("Response from AI:", response.response);
+  //@ts-ignore
+  const responseText = await response.text();
+  console.log("Response from AI:", responseText);
 
   // Extract and clean Mermaid.js code
-  let mermaidCodeMatch = response.response.match(/```mermaid\n([\s\S]*?)\n```/);
+  let mermaidCodeMatch = responseText.match(/```mermaid\n([\s\S]*?)\n```/);
   let mermaidCode = mermaidCodeMatch ? mermaidCodeMatch[1] : "";
 
   // Validate Mermaid.js code
   if (!mermaidCode || !mermaidCode.trim().startsWith("graph")) {
-    return NextResponse.json({
-      error: "Invalid Mermaid.js code generated. Please try again with a different prompt.",
-    }, { status: 400 });
+    return NextResponse.json(
+      {
+        error:
+          "Invalid Mermaid.js code generated. Please try again with a different prompt.",
+      },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ result: mermaidCode });

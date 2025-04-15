@@ -36,7 +36,7 @@ export default function ImageToText() {
         body: formData,
       });
 
-      const data = await response.json();
+      const data: { error?: string; description?: string } = await response.json(); 
       console.log(data);
       if (!response.ok) {
         throw new Error(data.error || "Error generating caption for the image.");

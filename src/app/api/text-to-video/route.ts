@@ -5,7 +5,7 @@ const client = new InferenceClient(process.env.HF_API_KEY!);
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt } = await req.json();
+    const { prompt } = (await req.json()) as { prompt: string };
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });

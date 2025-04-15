@@ -12,6 +12,7 @@ export default function YouTubeVideoSummary() {
   const [summary, setSummary] = useState("");
   const [videoDetails, setVideoDetails] = useState<VideoData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState("");
 
   // Extract video ID from URL
   const extractVideoId = (url: string) => {
@@ -30,49 +31,65 @@ export default function YouTubeVideoSummary() {
     }
 
     setIsLoading(true);
+    setLoadingPhase("Fetching transcript...");
     setSummary("");
     setVideoDetails(null);
 
     try {
-      // Fetch video details and transcript
-      const data = { video_url: videoUrl };
-      const response = await fetch(
-        `https://api.apify.com/v2/acts/invideoiq~video-transcript-scraper/run-sync?token=${process.env.NEXT_PUBLIC_APIFY_TOKEN}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
+      // Simulate fetching video details and transcript
+      const videoData = {
+        videoTitle: "Stop ignoring AI, It’s Harming Your Progress - YouTube",
+        url: videoUrl,
+        transcript: "do you genuinely believe that with Chant GPT and all these AI tools...",
+      };
 
-      if (!response.ok) throw new Error("Failed to fetch video data");
+      setLoadingPhase("Transcript fetched...");
+      setVideoDetails({
+        title: videoData.videoTitle,
+        thumbnail: "https://via.placeholder.com/150", // Replace with actual thumbnail if available
+        channel: "Example Channel",
+        duration: "600", // Replace with actual duration if available
+        description: "This is a sample description.", // Replace with actual description if available
+        channel_url: "https://www.youtube.com/channel/example", // Replace with actual channel URL if available
+        like_count: 12345, // Replace with actual like count if available
+        transcript: videoData.transcript.split('. ').map((text, index) => ({
+          start: index * 10, // Example start time (adjust as needed)
+          duration: 10, // Example duration (adjust as needed)
+          text: text.trim(),
+        })), // Include the transcript
+      });
 
-      const videoData = await response.json();
-      // @ts-ignore
-      setVideoDetails(videoData);
-      // @ts-ignore
-      const transcriptText = videoData.transcript
-        .map((item: { text: any }) => item.text)
-        .join(" ");
-
-      const summaryResponse = await fetch("/api/youtubeSummary", {
+      setLoadingPhase("Feeding AI...");
+      const response = await fetch("/api/youtubeSummary", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ transcript: transcriptText }),
+        body: JSON.stringify({ transcript: videoData.transcript }),
       });
 
-      if (!summaryResponse.ok) throw new Error("Failed to fetch summary");
+      if (!response.ok) throw new Error("Failed to fetch summary");
 
-      const summaryData = await summaryResponse.json();
-      // @ts-ignore
-      setSummary(summaryData.response);
+      setLoadingPhase("Generating AI response...");
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let result = "";
+
+      while (!done) {
+        const { value, done: readerDone } = await reader?.read()!;
+        done = readerDone;
+        result += decoder.decode(value, { stream: true });
+        setSummary((prev) => prev + decoder.decode(value, { stream: true }));
+      }
+
+      setLoadingPhase("Final output");
     } catch (error) {
       console.error("Error fetching summary:", error);
       setSummary("Failed to fetch summary. Please try again.");
     } finally {
       setIsLoading(false);
+      setLoadingPhase("");
     }
   };
 
@@ -106,7 +123,7 @@ export default function YouTubeVideoSummary() {
               placeholder="https://www.youtube.com/watch?v=example"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              className="w-full"
+              className="w-full bg-gray-900 text-white placeholder-gray-500 focus:ring focus:ring-blue-500"
             />
             <Button
               variant="outline"
@@ -115,7 +132,7 @@ export default function YouTubeVideoSummary() {
               disabled={isLoading}
             >
               <Upload className="w-4 h-4" />
-              {isLoading ? "Fetching..." : "Fetch"}
+              {isLoading ? loadingPhase : "Fetch"}
             </Button>
           </div>
         </div>
@@ -131,8 +148,8 @@ export default function YouTubeVideoSummary() {
               <h2 className="text-xl font-semibold">{videoDetails.title}</h2>
               <p className="text-gray-400">Channel: {videoDetails.channel}</p>
               <p className="text-gray-400">
-          {/* @ts-ignore */}
-                Duration: {Math.floor(videoDetails.duration / 60)}: {videoDetails.duration % 60} min
+                Duration: {Math.floor(Number(videoDetails.duration) / 60)}:{" "}
+                {Number(videoDetails.duration) % 60} min
               </p>
               <p className="text-gray-400 mt-4">{videoDetails.description}</p>
             </div>

@@ -21,11 +21,11 @@ export default function TextToVideo() {
         body: JSON.stringify({ prompt }),
       });
 
-      const data = await res.json();
+      const data: { dataURI?: string; error?: string } = await res.json();
 
       if (!res.ok) throw new Error(data.error || "Something went wrong");
 
-      setVideoSrc(data.dataURI);
+      setVideoSrc(data.dataURI || "");
     } catch (err: any) {
       setError(err.message);
     } finally {

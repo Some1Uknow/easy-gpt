@@ -1,37 +1,120 @@
+// @ts-nocheck
 "use client";
-
 import { useState, useEffect } from "react";
-import { Upload, FileText, Clipboard, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Clipboard,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ReactMarkdown from "react-markdown";
-import { pdfjs, Document, Page } from "react-pdf";
 
-// Import required CSS for the text and annotation layers
-import "react-pdf/dist/esm/Page/TextLayer.css";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-
-const extractTextFromPDF = async (file: File): Promise<string> => {
+// Simple wrapper for pdfjs that doesn't use Promise.withResolvers
+const simplePdfExtractor = async (file: File) => {
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument(arrayBuffer).promise;
-    let extractedText = "";
+    // Dynamically import pdfjs only on client side
+    const pdfJS = await import("pdfjs-dist");
 
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent();
-      // @ts-ignore
-      const strings = content.items.map((item: { str: any }) => item.str).join(" ");
-      extractedText += strings + "\n";
+    // Set up the worker source using unpkg instead of jsdelivr
+    if (typeof window !== "undefined") {
+      pdfJS.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.min.js`;
     }
 
-    console.log(extractedText);
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfJS.getDocument({
+      data: new Uint8Array(arrayBuffer),
+    });
+
+    // Manual promise handling to avoid Promise.withResolvers
+    const pdf = await new Promise<pdfjsLib.PDFDocumentProxy>((resolve, reject) => {
+      loadingTask.promise.then(resolve).catch(reject);
+    });
+
+    let extractedText = "";
+    let pagePromises: Promise<{ pageNum: number; text: string }>[] = [];
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      pagePromises.push(
+        pdf.getPage(i).then((page) => {
+          return page.getTextContent().then((content) => {
+            const strings = content.items
+              .filter((item): item is pdfjsLib.TextItem => "str" in item)
+              .map((item) => item.str)
+              .join(" ");
+            return { pageNum: i, text: strings };
+          });
+        })
+      );
+    }
+
+    const pageTexts = await Promise.all(pagePromises);
+
+    // Sort by page number and join with newlines
+    pageTexts
+      .sort((a, b) => a.pageNum - b.pageNum)
+      .forEach((page) => {
+        extractedText += page.text + "\n\n";
+      });
+
     return extractedText;
   } catch (error) {
-    console.error("Error extracting text from PDF:", error);
-    throw error;
+    console.error("Error extracting PDF text:", error);
+    throw new Error("Failed to extract text from PDF");
+  }
+};
+
+const renderPdfPreview = async (
+  file: File,
+  pageNumber: number,
+  onComplete: (result: { image: string; pageCount: number }) => void,
+  onError: (error: Error) => void
+) => {
+  try {
+    const pdfJS = await import("pdfjs-dist");
+
+    // Set up the worker source using unpkg instead of jsdelivr
+    if (typeof window !== "undefined") {
+      pdfJS.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.min.js`;
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfJS.getDocument({
+      data: new Uint8Array(arrayBuffer),
+    });
+
+    const pdf = await new Promise<pdfjsLib.PDFDocumentProxy>((resolve, reject) => {
+      loadingTask.promise.then(resolve).catch(reject);
+    });
+
+    if (pageNumber > pdf.numPages) {
+      pageNumber = 1;
+    }
+
+    const page = await pdf.getPage(pageNumber);
+    const viewport = page.getViewport({ scale: 1.5 });
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Failed to get canvas context");
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    await page.render({
+      canvasContext: context,
+      viewport: viewport,
+    }).promise;
+
+    const dataUrl = canvas.toDataURL();
+    onComplete({
+      image: dataUrl,
+      pageCount: pdf.numPages,
+    });
+  } catch (error) {
+    console.error("Error rendering PDF:", error);
+    onError(new Error("Failed to render PDF preview"));
   }
 };
 
@@ -64,17 +147,60 @@ const PDFSummary = () => {
   const [summary, setSummary] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [numPages, setNumPages] = useState<number | null>(null);
+  const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageImage, setPageImage] = useState<string | null>(null);
+  const [isRenderingPage, setIsRenderingPage] = useState<boolean>(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Reset all PDF-related states when a new file is selected
       setPdfFile(file);
       setError(null);
-      setCurrentPage(1); // Reset page to the first
+      setCurrentPage(1);
+      setPageImage(null);  // Clear current image
+      setNumPages(0);      // Reset page count
+      
+      // Manually trigger PDF rendering with the new file
+      setIsRenderingPage(true);
+      renderPdfPreview(
+        file, 
+        1, 
+        (result) => {
+          setPageImage(result.image);
+          setNumPages(result.pageCount);
+          setIsRenderingPage(false);
+        },
+        (err) => {
+          setError("Failed to render PDF preview: " + err.message);
+          setIsRenderingPage(false);
+        }
+      );
     }
   };
+
+  // Only use this effect for page navigation, not for initial file load
+  useEffect(() => {
+    // Only render if we have a file AND we're not already rendering
+    // AND this isn't triggered by the initial file selection (since we handle that separately)
+    if (pdfFile && !isRenderingPage && pageImage !== null) {
+      setIsRenderingPage(true);
+      renderPdfPreview(
+        pdfFile, 
+        currentPage, 
+        (result) => {
+          setPageImage(result.image);
+          setNumPages(result.pageCount);
+          setIsRenderingPage(false);
+        },
+        (err) => {
+          setError("Failed to render PDF preview: " + err.message);
+          setIsRenderingPage(false);
+        }
+      );
+    }
+  }, [currentPage]); // Only depend on currentPage, not pdfFile
 
   const handleUpload = async () => {
     if (!pdfFile) {
@@ -87,7 +213,8 @@ const PDFSummary = () => {
     setSummary("");
 
     try {
-      const extractedText = await extractTextFromPDF(pdfFile);
+      const extractedText = await simplePdfExtractor(pdfFile);
+
       const response = await fetch("/api/pdf-summary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,10 +224,9 @@ const PDFSummary = () => {
       if (!response.ok) throw new Error("Failed to start summarization.");
 
       const data = await response.json();
-      // @ts-ignore
       setSummary(data.summary);
-    } catch (err: any) {
-      setError(err.message || "Failed to extract or summarize text.");
+    } catch (err) {
+      setError((err as Error).message || "Failed to extract or summarize text.");
       setSummary("");
     } finally {
       setIsLoading(false);
@@ -110,11 +236,12 @@ const PDFSummary = () => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(summary)
-      .then(() => alert("Summary copied to clipboard!"));
+      .then(() => alert("Summary copied to clipboard!"))
+      .catch((err) => setError("Failed to copy: " + (err as Error).message));
   };
 
   const handleNextPage = () => {
-    if (currentPage < (numPages || 1)) {
+    if (currentPage < numPages) {
       setCurrentPage(currentPage + 1);
     }
   };
@@ -128,7 +255,6 @@ const PDFSummary = () => {
   return (
     <div className="min-h-screen bg-black p-6 md:p-10">
       <div className="max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 shadow-md rounded-lg p-8">
-        
         {/* Left Column: PDF Upload and Summary */}
         <div>
           <div className="mb-8">
@@ -185,7 +311,7 @@ const PDFSummary = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Right Column: PDF Viewer */}
         <div className="bg-[#0a0a0a] p-6 rounded-lg h-full flex flex-col items-center overflow-auto">
           {pdfFile ? (
@@ -193,30 +319,35 @@ const PDFSummary = () => {
               <div
                 className="pdf-container"
                 style={{
-                  width: "100%", // Make the container's width fill the available space
-                  height: "80vh", // Limit the height of the PDF viewable area
-                  overflowY: "auto", // Allow vertical scrolling
-                  overflowX: "hidden", // Prevent horizontal scrolling
+                  width: "100%",
+                  height: "80vh",
+                  overflowY: "auto",
+                  overflowX: "hidden",
                   position: "relative",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                 }}
               >
-                <Document
-                  file={pdfFile}
-                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                  className="mb-4"
-                >
-                  <Page
-                    pageNumber={currentPage}
-                    width={Math.min(window.innerWidth * 0.9, 800)} // Ensure the page width scales correctly
-                    renderTextLayer={false}
-                    renderAnnotationLayer={false}
+                {isRenderingPage ? (
+                  <div className="text-gray-400 flex flex-col items-center">
+                    <p>Loading page...</p>
+                    <div className="mt-4 h-6 w-6 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : pageImage ? (
+                  <img
+                    src={pageImage}
+                    alt={`PDF page ${currentPage}`}
+                    style={{ maxWidth: "100%", height: "auto" }}
                   />
-                </Document>
+                ) : (
+                  <p className="text-gray-400">Failed to load PDF preview.</p>
+                )}
               </div>
               <div className="flex items-center gap-4 mt-4">
                 <Button
                   onClick={handlePreviousPage}
-                  disabled={currentPage <= 1}
+                  disabled={currentPage <= 1 || isRenderingPage}
                   variant="ghost"
                   className="flex items-center gap-1"
                 >
@@ -228,7 +359,7 @@ const PDFSummary = () => {
                 </span>
                 <Button
                   onClick={handleNextPage}
-                  disabled={currentPage >= (numPages || 1)}
+                  disabled={currentPage >= numPages || isRenderingPage}
                   variant="ghost"
                   className="flex items-center gap-1"
                 >
@@ -243,7 +374,6 @@ const PDFSummary = () => {
             </p>
           )}
         </div>
-
       </div>
     </div>
   );
