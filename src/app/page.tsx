@@ -87,10 +87,10 @@ export default function Page() {
 
             {/* Call-to-Action Button */}
             <button
-              onClick={() => router.push("/signup")}
+              onClick={() => router.push("/chat")}
               className="bg-white text-black px-6 py-3 text-lg rounded-full font-medium flex items-center space-x-2 mx-auto"
             >
-              <span>Start free today</span>
+              <span>Start Now</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
