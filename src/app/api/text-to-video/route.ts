@@ -3,26 +3,43 @@ import { InferenceClient } from "@huggingface/inference";
 
 const client = new InferenceClient(process.env.HF_API_KEY!);
 
+export const runtime = "edge";
+
 export async function POST(req: NextRequest) {
   try {
-    const { prompt } = (await req.json()) as { prompt: string };
+    const { prompt, duration = "10" } = await req.json();
 
     if (!prompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Text prompt is required" },
+        { status: 400 }
+      );
     }
 
-    const blob = await client.textToVideo({
-      provider: "replicate",
-      model: "Wan-AI/Wan2.1-T2V-14B",
+    const response = await client.textToVideo({
       inputs: prompt,
+      model: "damo-vilab/text-to-video-ms-1.7b",
+      parameters: {
+        num_frames: parseInt(duration) * 30, // 30fps
+        width: 1024,
+        height: 576,
+      },
     });
 
-    const arrayBuffer = await blob.arrayBuffer();
-    const base64 = Buffer.from(arrayBuffer).toString("base64");
-    const dataURI = `data:video/mp4;base64,${base64}`;
-
-    return NextResponse.json({ dataURI });
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Video = Buffer.from(arrayBuffer).toString("base64");
+    
+    return NextResponse.json({
+      success: true,
+      video: `data:video/mp4;base64,${base64Video}`,
+      prompt,
+      duration
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || "Something went wrong" }, { status: 500 });
+    console.error("Error in text-to-video generation:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to generate video" },
+      { status: 500 }
+    );
   }
 }

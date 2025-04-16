@@ -1,0 +1,46 @@
+.chat-container {
+  background: black;
+}
+
+.chat-sidebar {
+  background: #111111;
+  border-right: 1px solid #222222;
+}
+
+.chat-message {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.message-user {
+  background: white;
+  color: black;
+}
+
+.message-assistant {
+  background: #1a1a1a;
+  color: white;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+}
+
+.typing-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #666666;
+  animation: typingAnimation 1.4s infinite ease-in-out;
+}
+
+@keyframes typingAnimation {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}

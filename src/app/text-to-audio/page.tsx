@@ -1,40 +1,30 @@
-import { Speaker, Clipboard } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+'use client'
+import ChatLayout from "@/components/chat/ChatLayout";
+import ChatInterface from "@/components/chat/ChatInterface";
 
 export default function TextToAudio() {
   return (
-    <div className="min-h-screen  p-8">
-      <div className="max-w-6xl mx-auto  shadow-md rounded-lg p-6">
-        {/* Heading and Subheading */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Speaker className="w-6 h-6" />
-            Text to Audio
+    <ChatLayout type="text-to-audio">
+      <div className="flex flex-col h-full">
+        <div className="p-6 border-b border-gray-800">
+          <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600">
+            Text to Speech AI
           </h1>
-          <p className="text-gray-100 mt-2">Convert Written Content into Voice Narration</p>
+          <p className="text-gray-400 mt-2">
+            Transform your text into natural-sounding speech in seconds
+          </p>
         </div>
-
-        {/* Text Input Section */}
-        <div className="mb-6">
-          <label className="block text-gray-100 font-medium mb-2">Enter Your Text</label>
-          <Textarea placeholder="Type or paste your text here..." className="w-full" rows={6} />
-        </div>
-
-        {/* Output Section */}
-        <div className="mb-6">
-          <label className="block text-gray-100 font-medium mb-2">Generated Audio</label>
-          <Textarea readOnly placeholder="The generated audio will be playable here..." className="w-full bg-gray-100" rows={2} />
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-4">
-          <Button variant="ghost" className="flex items-center gap-2">
-            <Speaker className="w-4 h-4" />
-            Play Audio
-          </Button>
-        </div>
+        
+        <ChatInterface 
+          context="You are a text-to-audio assistant. Help users convert text to audio and provide guidance on audio-related tasks."
+          placeholder="Try 'Convert this text to a British accent' or 'Generate a podcast intro'"
+          suggestions={[
+            "Create a professional voiceover for my video",
+            "Convert this text with a calm, soothing voice",
+            "Generate an audiobook narration"
+          ]}
+        />
       </div>
-    </div>
+    </ChatLayout>
   );
 }

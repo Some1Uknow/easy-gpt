@@ -1,23 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRequestContext } from "@cloudflare/next-on-pages";
+import { InferenceClient } from "@huggingface/inference";
+
+const client = new InferenceClient(process.env.HF_API_KEY!);
 
 export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
-  const { prompt } = (await req.json()) as { prompt: string };
-  console.log("Received prompt:", prompt);
   try {
-    const response = await getRequestContext().env.AI.run(
-      "@cf/black-forest-labs/flux-1-schnell",
-      {
-        prompt: prompt,
-      }
+    const { prompt, style = "realistic" } = await req.json();
+
+    if (!prompt) {
+      return NextResponse.json(
+        { error: "Text prompt is required" },
+        { status: 400 }
+      );
+    }
+
+    const response = await client.textToImage({
+      inputs: prompt,
+      model: "stabilityai/stable-diffusion-2",
+      parameters: {
+        negative_prompt: "blurry, bad quality, distorted",
+        num_inference_steps: 30,
+      },
+    });
+
+    const arrayBuffer = await response.arrayBuffer();
+    const base64Image = Buffer.from(arrayBuffer).toString("base64");
+    
+    return NextResponse.json({
+      success: true,
+      image: `data:image/jpeg;base64,${base64Image}`,
+      prompt
+    });
+  } catch (error: any) {
+    console.error("Error in text-to-image generation:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to generate image" },
+      { status: 500 }
     );
-    // response.image is base64 encoded which can be used directly as an <img src=""> data URI
-    const dataURI = `data:image/jpeg;charset=utf-8;base64,${response.image}`;
- //   console.log("Generated image data URI:", dataURI);
-    return Response.json({ dataURI });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

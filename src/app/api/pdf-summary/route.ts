@@ -1,5 +1,5 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
@@ -7,31 +7,49 @@ export interface Env {
   AI: Ai;
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // @ts-ignore
-    const { text } = await req.json(); // Receive extracted text from the frontend
+    const { pdf, text } = await req.json();
 
-    if (!text) {
-      return NextResponse.json({ error: "No text provided for summarization." }, { status: 400 });
+    if (!pdf && !text) {
+      return NextResponse.json(
+        { error: "Either PDF content or extracted text is required" },
+        { status: 400 }
+      );
     }
 
+    // Use the text if provided, otherwise extract from PDF
+    const contentToAnalyze = text || pdf;
+
     const response = await getRequestContext().env.AI.run(
-      // @ts-ignore
-      "@cf/meta/llama-3.1-8b-instruct",
+      "@cf/meta/llama-2-7b-chat",
       {
-        prompt: `Summarize the following text: ${text}`,
+        messages: [
+          {
+            role: "system",
+            content: "You are a document analysis assistant. Create a concise but comprehensive summary of the provided content.",
+          },
+          {
+            role: "user",
+            content: `Generate a summary of this document: ${contentToAnalyze}`,
+          },
+        ],
       }
     );
 
-    // Extract the summary from the response (assuming it's within 'choices' or similar structure)
-  
-    console.log(response);
     // @ts-ignore
-    const summary = response.response ? response.response : "Summary not available.";
-    return NextResponse.json({ summary });
-  } catch (error) {
-    console.error("Error in summarizing text:", error);
-    return NextResponse.json({ error: "Failed to generate summary." }, { status: 500 });
+    const summary = response.response || "Summary could not be generated.";
+    
+    return NextResponse.json({
+      success: true,
+      summary,
+      length: summary.length
+    });
+  } catch (error: any) {
+    console.error("Error in PDF summarization:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to summarize document" },
+      { status: 500 }
+    );
   }
 }

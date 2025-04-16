@@ -1,40 +1,60 @@
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "edge";
 
 export interface Env {
   AI: Ai;
 }
-export async function POST(request: Request): Promise<Response> {
+
+export async function POST(req: NextRequest) {
   try {
-    const formData = await request.formData();
-    const image = formData.get("image") as File;
+    const { image } = await req.json();
 
     if (!image) {
-      return new Response(JSON.stringify({ error: "Image is required" }), {
-        status: 400,
-      });
+      return NextResponse.json(
+        { error: "Image data is required" },
+        { status: 400 }
+      );
     }
 
-    // Convert the image to a Buffer
-    const imageBuffer = await image.arrayBuffer();
+    // Validate base64 image
+    const base64Regex = /^data:image\/(jpeg|png|gif|webp);base64,/;
+    if (!base64Regex.test(image)) {
+      return NextResponse.json(
+        { error: "Invalid image format" },
+        { status: 400 }
+      );
+    }
 
-    // Call Cloudflare's AI model for generating a caption
-    const input = {
-      image: [...new Uint8Array(imageBuffer)],
-      prompt: "Generate a caption for this image",
-      max_tokens: 512,
-    };
     const response = await getRequestContext().env.AI.run(
-      "@cf/unum/uform-gen2-qwen-500m",
-      input
+      "@cf/meta/llama-2-7b-chat",
+      {
+        messages: [
+          {
+            role: "system",
+            content: "You are an OCR and image analysis assistant. Extract and analyze text from the provided image.",
+          },
+          {
+            role: "user",
+            content: `Extract text from this image: ${image}`,
+          },
+        ],
+      }
     );
-    console.log(response);
-    return new Response(JSON.stringify(response), { status: 200 });
-  } catch (error) {
-    console.error("Error processing image:", error);
-    return new Response(JSON.stringify({ error: "Failed to process image" }), {
-      status: 500,
+
+    // @ts-ignore
+    const extractedText = response.response || "No text found in image.";
+    
+    return NextResponse.json({
+      success: true,
+      text: extractedText
     });
+  } catch (error: any) {
+    console.error("Error in image text extraction:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to extract text from image" },
+      { status: 500 }
+    );
   }
 }
