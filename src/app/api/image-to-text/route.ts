@@ -9,7 +9,7 @@ export interface Env {
 
 export async function POST(req: NextRequest) {
   try {
-    const { image } = await req.json();
+    const { image } = (await req.json()) as { image: string };
 
     if (!image) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await getRequestContext().env.AI.run(
-      "@cf/meta/llama-2-7b-chat",
+      "@hf/mistral/mistral-7b-instruct-v0.2",
       {
         messages: [
           {

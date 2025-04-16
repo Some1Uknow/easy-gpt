@@ -7,7 +7,7 @@ export const runtime = "edge";
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, duration = "10" } = await req.json();
+    const { prompt, duration = "10" } = await req.json() as { prompt: string; duration?: string };
 
     if (!prompt) {
       return NextResponse.json(

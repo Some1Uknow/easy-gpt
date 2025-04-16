@@ -47,9 +47,9 @@ export default function ChatInterface({ context, placeholder, suggestions, onSen
         }),
       });
 
-      const data = await response.json();
+      const data = (await response.json()) as { response?: string };
       if (data.response) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.response as string }]);
       }
 
       if (onSend) {

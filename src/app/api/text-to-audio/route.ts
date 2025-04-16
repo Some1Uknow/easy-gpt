@@ -9,7 +9,7 @@ export interface Env {
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voice = "en-US" } = await req.json();
+    const { text, voice = "en-US" } = await req.json() as { text: string; voice?: string };
 
     if (!text) {
       return NextResponse.json(
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await getRequestContext().env.AI.run(
-      "@cf/meta/llama-2-7b-chat",
+      "@hf/mistral/mistral-7b-instruct-v0.2",
       {
         messages: [
           {
